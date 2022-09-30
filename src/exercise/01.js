@@ -73,14 +73,23 @@ function useUser() {
   return context
 }
 
-// 🐨 add a function here called `updateUser`
-// Then go down to the `handleSubmit` from `UserSettings` and put that logic in
-// this function. It should accept: dispatch, user, and updates
+async function updatedUser(dispatch, user, updates) {
+  dispatch({type: 'start update', updates: updates})
+  try {
+    const updatedUser = await userClient.updateUser(user, updates)
+    dispatch({type: 'finish update', updatedUser})
+    return updatedUser
+  } catch (error) {
+    dispatch({type: 'fail update', error})
+    Promise.reject(error)
+    // or throw new error
+  }
+}
 
-// export {UserProvider, useUser}
+// export {UserProvider, useUser, updatedUser}
 
 // src/screens/user-profile.js
-// import {UserProvider, useUser} from './context/user-context'
+// import {UserProvider, useUser, updatedUser} from './context/user-context'
 function UserSettings() {
   const [{user, status, error}, userDispatch] = useUser()
 
@@ -96,13 +105,8 @@ function UserSettings() {
   }
 
   function handleSubmit(event) {
+    updatedUser(userDispatch, user, formState)
     event.preventDefault()
-    // 🐨 move the following logic to the `updateUser` function you create above
-    userDispatch({type: 'start update', updates: formState})
-    userClient.updateUser(user, formState).then(
-      updatedUser => userDispatch({type: 'finish update', updatedUser}),
-      error => userDispatch({type: 'fail update', error}),
-    )
   }
 
   return (
@@ -141,7 +145,7 @@ function UserSettings() {
           name="bio"
           value={formState.bio}
           onChange={handleChange}
-          style={{width: '100%'}}
+          style={{width: ' %'}}
         />
       </div>
       <div>

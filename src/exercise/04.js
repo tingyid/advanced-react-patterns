@@ -4,23 +4,45 @@
 import * as React from 'react'
 import {Switch} from '../switch'
 
+function callAll(...functions) {
+  return (...args) => {
+    functions.forEach(func => {
+      func && func(...args)
+    })
+  }
+}
+
 function useToggle() {
   const [on, setOn] = React.useState(false)
   const toggle = () => setOn(!on)
 
-  // 🐨 Add a property called `togglerProps`. It should be an object that has
-  // `aria-pressed` and `onClick` properties.
-  // 💰 {'aria-pressed': on, onClick: toggle}
-  return {on, toggle}
+  function getToggleProps({onClick, ...props} = {}) {
+    return {
+      'aria-pressed': on,
+      onClick: callAll(onClick, toggle),
+      ...props,
+    }
+  }
+
+  return {
+    on,
+    toggle,
+    getToggleProps,
+  }
 }
 
 function App() {
-  const {on, togglerProps} = useToggle()
+  const {on, getToggleProps} = useToggle()
   return (
     <div>
-      <Switch on={on} {...togglerProps} />
+      <Switch {...getToggleProps({on})} />
       <hr />
-      <button aria-label="custom-button" {...togglerProps}>
+      <button
+        {...getToggleProps({
+          'aria-label': 'custom-button',
+          onClick: () => console.log('onClickButton'),
+        })}
+      >
         {on ? 'on' : 'off'}
       </button>
     </div>
